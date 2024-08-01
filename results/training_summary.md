@@ -16,3 +16,6 @@
 - mIoU: 0.4608 (vs reference 0.758)
 
 Generated on: Thu Jul 31 22:35:01 CDT 2025
+# Updated Training Analysis 2025-07-31
+
+Latest improvements to metrics visualization and analysis.
