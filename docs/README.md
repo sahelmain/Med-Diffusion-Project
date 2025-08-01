@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Documentation Directory
 
 This directory contains research documentation, analysis notebooks, and project reports.
@@ -67,3 +68,6 @@ This directory contains research documentation, analysis notebooks, and project 
 - Statistical comparisons and significance testing
 - Final report analysis sections
 - Presentation materials and technical insights 
+=======
+# Documentation - Assigned to Daniel
+>>>>>>> ea6f8e4af301e2e84b1381d456d00f179e5ece63

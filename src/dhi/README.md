@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DHI Module Directory
 
 This directory contains the Domain Harmonization Integration (DHI) module implementation and ControlNet integration.
@@ -42,3 +43,6 @@ Create tests to verify:
 - Domain adaptation improves convergence on medical data
 - ControlNet functionality is preserved
 - Multi-GPU training works correctly 
+=======
+# DHI Module - Assigned to Sam
+>>>>>>> ea6f8e4af301e2e84b1381d456d00f179e5ece63

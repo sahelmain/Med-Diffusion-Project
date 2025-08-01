@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Models Directory
 
 This directory contains the core architecture implementations for the Siamese-Diffusion model.
@@ -36,3 +37,6 @@ Create unit tests in a `tests/` subdirectory to verify:
 - Noise consistency is maintained across Siamese branches
 - Gradient flow is correct
 - Model can be saved/loaded properly 
+=======
+# Team Assignment READMEs
+>>>>>>> ea6f8e4af301e2e84b1381d456d00f179e5ece63

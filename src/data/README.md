@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Data Directory
 
 This directory contains data loading, preprocessing, and dataset management code.
@@ -66,3 +67,6 @@ Create tests to verify:
 - Data augmentation works properly
 - Batch generation is consistent
 - Evaluation metrics are computed correctly 
+=======
+# Data & Experiments - Assigned to Ynes
+>>>>>>> ea6f8e4af301e2e84b1381d456d00f179e5ece63

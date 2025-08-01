@@ -2,8 +2,11 @@
 
 This repository contains our group's work for re-implementing and analyzing the methods from "Noise-Consistent Siamese-Diffusion for Medical Image Synthesis and Segmentation" ([arXiv:2505.06068](https://arxiv.org/abs/2505.06068)) and proposing novel enhancements for improved medical image synthesis and segmentation.
 
+<<<<<<< HEAD
 **Course Timeline: 4-week intensive summer course**
 
+=======
+>>>>>>> ea6f8e4af301e2e84b1381d456d00f179e5ece63
 ## Team Members
 - **Sahel** - Project Lead & Integration
 - **Salish** - Core Model Architecture  
@@ -17,6 +20,7 @@ This repository contains our group's work for re-implementing and analyzing the 
 3. **Propose and implement** novel techniques to enhance model performance
 4. **Analyze** the model's capabilities and limitations in medical imaging contexts
 
+<<<<<<< HEAD
 ## Accelerated Timeline (4 Weeks)
 
 ### Week 1: Foundation & Setup
@@ -39,6 +43,8 @@ This repository contains our group's work for re-implementing and analyzing the 
 - **Days 25-26**: Final report writing
 - **Days 27-28**: Presentation preparation and final submission
 
+=======
+>>>>>>> ea6f8e4af301e2e84b1381d456d00f179e5ece63
 ## Setup Instructions
 
 ### Environment Setup
@@ -53,20 +59,31 @@ pip install -r requirements.txt
 
 ## Progress Tracking
 
+<<<<<<< HEAD
 ### Midterm Deliverables (End of Week 2)
 - [ ] Core architecture re-implementation
 - [ ] DHI module implementation  
+=======
+### Midterm Deliverables (Week 6)
+- [ ] Core architecture re-implementation
+- [ ] DHI module implementation
+>>>>>>> ea6f8e4af301e2e84b1381d456d00f179e5ece63
 - [ ] Data pipeline setup
 - [ ] Initial reproduction results
 - [ ] Novel improvement proposals
 - [ ] 5+ page IEEE format report
 
+<<<<<<< HEAD
 ### Final Deliverables (End of Week 4)
+=======
+### Final Deliverables (Week 12)
+>>>>>>> ea6f8e4af301e2e84b1381d456d00f179e5ece63
 - [ ] Novel methods implementation
 - [ ] Comprehensive experiments
 - [ ] Performance analysis and comparisons
 - [ ] 12+ page IEEE format report
 - [ ] Final presentation
+<<<<<<< HEAD
 
 ## Daily Coordination
 Given the accelerated timeline:
@@ -89,3 +106,5 @@ Given the accelerated timeline:
 This project is for educational purposes as part of a graduate course project. # Project Structure Update
 
 This repository now contains organized results, documentation, and implementation files for the Siamese-Diffusion medical image synthesis project.
+=======
+>>>>>>> ea6f8e4af301e2e84b1381d456d00f179e5ece63
