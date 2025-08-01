@@ -1,0 +1,296 @@
+
+1
+Midterm Report: Replicating Siamese-Diffusion for
+Medical Image Synthesis
+Samuel Abiola Ynes Ineza Sahel Azzam Salish Kumar Daniel Diaz Santiago
+Abstract—Diffusion models have recently become popular in
+machine learning for generating high-quality images, but their
+performance in medical imaging is often constrained by the
+scarcity of annotated datasets. The work by Qiu et al. (2025) [1]
+proposes Siamese-Diffusion, a dual-branch diffusion model de-
+signed to address this challenge by enhancing both the fidelity
+and diversity of synthetic medical images. In this paper, we
+describe our replication efforts, the challenges encountered during
+implementation, and provide a detailed analysis of the unexpected
+noisy outputs obtained from our model. Our findings highlight
+critical implementation considerations for reproducing complex
+diffusion architectures in medical imaging applications.
+Index Terms—diffusion models, medical imaging,
+siamese-diffusion, image synthesis, replication study
+I. INTRODUCTION
+Deep learning has revolutionized medical image analysis, yet
+its full potential remains constrained by the paucity of annotated
+datasets. Medical data annotation is costly, time-consuming,
+and requires expert knowledge, creating a significant bottleneck
+for developing robust segmentation models. Diffusion models
+have emerged as a promising solution by generating synthetic
+image–mask pairs to augment these limited datasets.
+Problem Statement & Motivation: Medical-image seg-
+mentation urgently needs larger, more diverse training corpora,
+yet hospital data are scarce and tightly regulated. Traditional
+diffusion models can certainly boost dataset size, yet in
+practice they often blur subtle mucosal textures or hallucinate
+implausible polyp shapes. Such artefacts, while visually minor,
+can confuse downstream segmentation networks and ultimately
+degrade clinical accuracy [1]. Our early replica exhibits exactly
+this failure mode: high-frequency detail is lost, even though
+the global polyp outline is preserved.
+Closing this gap while retaining high diversity is the central
+objective of our replication effort.
+However, traditional mask-only diffusion models frequently
+yield low-fidelity images because they struggle to capture
+subtle morphological intricacies. This limitation can criti-
+cally compromise the robustness and reliability of segmen-
+tation models trained on such synthetic data. To address
+this challenge, Qiu et al. [1] introduced Siamese-Diffusion,
+a dual-component model comprising Mask-Diffusion and
+Image-Diffusion branches.
+The key innovation of Siamese-Diffusion lies in its Noise
+Consistency Loss, which allows the noise predicted by
+Image-Diffusion to act as an anchor, steering the optimisation
+trajectory of Mask-Diffusion toward local minima with higher
+morphological fidelity. During sampling, only Mask-Diffusion
+is employed, ensuring both diversity and scalability while
+maintaining high-fidelity characteristics.
+In our replication study, we implemented the
+Siamese-Diffusion architecture following the published
+methodology. Nevertheless, the generated images remained
+highly noisy, falling short of the expected medical realism.
+This paper documents our implementation, analyses the
+observed issues, and discusses potential causes and remedies.
+II. RELATED WORKS
+A. Diffusion Models for Image Synthesis
+Diffusion Probabilistic Models (DPMs) have emerged as a
+leading paradigm for high-quality image generation, surpassing
+traditional generative adversarial networks (GANs) in sample
+fidelity and diversity. The seminal work by Ho et al. [2]
+introduced the denoising diffusion probabilistic model, which
+iteratively refines Gaussian noise through a learned denoising
+process to produce photorealistic images. Building upon this
+foundation, Latent Diffusion Models (LDMs) [3] improved
+computational efficiency by operating in a learned latent space
+rather than pixel space, enabling scalable generation at reduced
+memory and compute costs.
+Recent advancements have focused on controllable genera-
+tion. ControlNet [4] extends pre-trained diffusion backbones
+with auxiliary networks that condition generation on structural
+priors such as segmentation masks, depth maps, and edge
+maps. These approaches are particularly impactful in domains
+where controllability and data scarcity intersect, including
+medical imaging and scientific visualisation [5]. In parallel,
+methods such as T2I-Adapter and Prompt-to-Prompt show that
+lightweight conditioning modules or prompt editing can unlock
+fine-grained control without retraining the backbone, further
+widening the applicability of diffusion models.
+B. Medical Image Synthesis
+Medical image synthesis faces unique challenges because
+of strict privacy regulations, severe class imbalance, and
+the clinical significance of subtle morphological details.
+GAN-based solutions—CycleGAN, Pix2Pix, StyleGAN and
+their medical variants [6]—have been intensively investigated
+for tasks ranging from MRI reconstruction to cross-modality
+translation, yet they frequently suffer from mode collapse,
+unstable training, and loss of fine-grained anatomy. Variational
+Autoencoders (VAEs) [7] mitigate some instability but often
+blur critical structures.
+Diffusion-based models have begun to address these short-
+comings. Adaptive refinement strategies, such as ArSDM [8],
+demonstrate improved mucosal texture and colour realism in
+colonoscopy synthesis, while Medfusion and UNidiff tackle
+3-D volumetric generation. Nevertheless, many mask-driven
+approaches either become trapped in local minima—yielding
+anatomically plausible yet low-diversity images—or rely on
+joint mask-image conditioning that sacrifices generative diver-
+sity by over-fitting to the training distribution [9]. Consequently,
+balancing morphological fidelity with diversity remains an open
+research challenge.
+The work replicated in our project focuses on
+Siamese-Diffusion, which introduces a dual-branch
+architecture comprising Mask-Diffusion (mask-only control)
+and Image-Diffusion (joint image–mask control). Its key
+contribution—Noise Consistency Loss—uses the more
+accurate noise estimate from Image-Diffusion to guide
+Mask-Diffusion toward higher-fidelity regions of the parameter
+space, thereby retaining diversity while boosting realism.
+Qiu et al. demonstrates state-of-the-art FID, KID, and
+segmentation transfer scores across multiple endoscopic
+datasets, positioning Siamese-Diffusion as a compelling
+solution to the fidelity-versus-diversity dilemma in medical
+image synthesis.
+III. METHODOLOGY
+A. Reference Pipeline (Qiu et al.)
+Qiu et al. propose Siamese-Diffusion, a dual-branch frame-
+work that couples a Mask-Diffusion pathway—guided solely by
+segmentation masks—with an Image-Diffusion pathway condi-
+tioned on both the image and its mask. A Dense-Hint-Input
+(DHI) module encodes the concatenated RGB image and
+binary mask before passing them through ControlNet layers
+grafted onto a frozen Stable Diffusion v1.5 UNet–VQ-VAE
+backbone. The two branches share weights and are aligned
+by a Noise Consistency Loss, encouraging Mask-Diffusion to
+inherit the higher-fidelity noise predictions of Image-Diffusion
+while preserving generative diversity. Training is performed
+with AdamW (learning-rate 1 ×10−5, weight-decay 1 ×10−2)
+for 3000 iterations per dataset, and inference employs DDIM
+sampling with 50 denoising steps and a guidance scale of 9.
+B. Replication Setup on a Local Workstation
+All experiments are executed on a single high-end PC rather
+than a super-computing cluster.
+Hardware and Environment. The workstation houses one
+NVIDIA RTX 4090 GPU (24 GB GDDR6X, FP16 enabled),
+an AMD Ryzen 9 7950X CPU, and 128 GB system RAM. Soft-
+ware versions are PyTorch 2.2, CUDA 12.3, diffusers 0.27,
+transformers 4.41, and accelerate 0.29. Random
+seeds are fixed to 42 for reproducibility.
+Dataset. We employ 1 000 colon-polyp images with
+pixel-accurate masks compiled from Kvasir-SEG and
+CVC-ClinicDB. Images are centre-cropped and resized
+to 512 ×512; masks undergo identical spatial transforms. A
+patient-disjoint 80 / 10 / 10 split prevents information leakage.
+Model Initialisation. The ViT-L/14 CLIP text encoder and
+Stable-Diffusion-v1.5 UNet weights are loaded from official
+Hugging Face checkpoints. ControlNet layers (channel multipli-
+ers {16, 32, 64, 128, 256}) are merged via weight interpolation,
+and the Dense-Hint-Input module is re-implemented as per
+Qiu et al.. Tokenisers remain frozen.
+Training Schedule. VRAM limits require a physical batch
+of 8; six-step gradient accumulation yields an effective batch
+of 48, matching the reference setup. We optimise for 3000
+steps (45 epochs). Learning rate warms from 0 to 1×10−5 over
+the first 500 steps, then follows cosine decay. Mixed-precision
+is enabled via torch.cuda.amp. Checkpoints and Tensor-
+Board logs are written every 250 steps.
+Inference Configuration. After training, we generate five
+DDIM samples (50 steps, guidance 9, η = 0) per test mask
+using only the Mask-Diffusion branch. Prompts follow the
+template “endoscopic image of a colonic polyp”.
+Evaluation Protocol. Fidelity is measured with Fréchet
+Inception Distance (FID) and Kernel Inception Distance (KID);
+perceptual similarity with CLIP-I and LPIPS; shape alignment
+with CMMD; and clinical utility with weighted mDice and
+mIoU obtained from a pre-trained SANet segmentor. Human
+realism is scored via a 5-point Mean-Opinion Score (MOS)
+survey. All metrics are averaged across five random seeds.
+IV. DATASETS AND END-TO-END DATA PIPELINE
+A. Polyp Suite: Kvasir-SEG & CVC-ClinicDB
+Our primary benchmark, denoted Polyp 1 K, combines
+the well-curated Kvasir-SEG and CVC-ClinicDB repositories,
+yielding exactly 1 000 colonoscopic frames with matched
+pixel-perfect masks. Kvasir contributes 500 RGB images at
+native 768×576 px, while CVC supplies another 500 at 384×
+288 px. Original aspect ratios are preserved until the final
+transform; no letterboxing is applied. Each mask covers on
+average 8.7 % of the frame, but the distribution is long-tailed:
+the 10th percentile covers only 1.9 %, whereas the top decile
+spans 21 %. Such imbalance motivates class-balanced sampling
+later in the pipeline. Meta-data (patient ID, sequence ID, frame
+index) are retained to guarantee split integrity: an 80 / 10 / 10
+patient-disjoint split is generated by hashing the anonymised
+patient string and thresholding on [0,1). We publish the hash
+list to enable byte-wise reproducibility across institutions.
+B. Auxiliary Sets: EndoScene, HyperKvasir, Stain, Faeces
+To probe data-volume scaling, we curate two
+auxiliary-diversity corpora. EndoScene adds 912 high-definition
+(1280 ×720) frames collected with a different Olympus
+endoscope model, introducing sharper texture but also colour
+shifts toward cooler chroma. HyperKvasir videos are decoded
+at 5 fps and trimmed to 10-second clips centred on each
+polyp annotation; from these clips we extract key, mid,
+and tail frames, yielding 1 600 additional mask-labelled
+images. Finally, two transfer-domain sets (Stain, 500 histology
+micro-graphs; Faeces, 458 unstructured endoscopy stills
+contaminated by faecal matter) are used to stress-test
+generalisation. Both internal datasets are released under a
+research-only CC-BY-NC licence with fully anonymised EXIF
+and DICOM tags removed.
+C. On-Disk Organization & Versioning
+File names follow the pattern
+{dataset}-{patient}-{frame}.png; masks use
+the same stem with the suffix _mask.png. An accompanying
+manifest-v1.json stores SHA-256 hashes for every
+object, allowing ‘dvc pull‘ to verify integrity before each
+training run. Any change in pre-processing bumps the manifest
+minor version; major increments are reserved for raw-data
+additions, ensuring forward compatibility with published
+checkpoints.
+D. Pre-processing: From RGB to Augmented Latents
+Every image–mask pair passes through a five-stage transform
+stack implemented with torchvision v0.19. Stage 1
+crops (or zero-pads) the frame to a square window centred on
+the lesion centroid—estimated via a distance transform on the
+binary mask—and then resizes the result to 512 ×512 pixels.
+Stage 2 converts colour channels from RGB to Lab; the
+luminance channel is linearly rescaled to [−1,1] while the a and
+b chroma channels are z-scored using dataset-specific means
+and standard deviations. Stage 3 performs photometric aug-
+mentation with p = 0.3, applying a random ±5 % gamma shift
+and an independent ±3 % contrast jitter to mimic variations in
+endoscope illumination. Stage 4 applies a geometric ensemble
+with p = 0.2: a random 90◦rotation, a left–right flip, and a
+mild elastic deformation (α = 10, σ = 5); the mask is warped
+with identical parameters to preserve pixel correspondence.
+Stage 5 feeds both tensors through the frozen Stable-Diffusion
+VQ-VAE encoder, producing a latent tensor z0 ∈R64×64×4 that
+becomes the actual input for Siamese-Diffusion. Each latent is
+cached in an lmdb database keyed by the SHA-256 hash of the
+raw image, which eliminates redundant encoding and reduces
+data-loader overhead by roughly 40 % across multi-epoch runs.
+E. Run-Time Data Balancing
+Because only 9 % of Polyp 1 K pixels belong to the lesion
+class, naive mini-batch sampling yields vanishing gradients for
+the Image-Diffusion branch. We therefore maintain two Python
+queues managed by torchdata: a foreground queue draws
+frames whose mask coverage exceeds the median percentage;
+a background queue contains the remainder. Each mini-batch
+pulls four samples from the foreground queue and two from
+the background queue (ratio 2:1), preserving morphological
+diversity without diluting lesion signal.
+F. Training Pipeline: From Latents to Checkpoints
+The full training cycle is orchestrated by train.py, which
+spawns one data-loader process per GPU. After synchronised
+gradient update, each worker logs local GPU utilisation to
+Nsight. A linear warm-up over the first 500 steps raises the
+AdamW learning rate from 0 to 1 ×10−5, followed by cosine
+decay. Gradient accumulation of two mini-batches delivers
+an effective global batch-size of 48 without exceeding 42 GB
+VRAM at mixed precision. The Noise-Consistency Loss weight
+λc is linearly annealed from 0 to its target value over the first
+600 steps, preventing early instability. Every 250 steps, the
+pipeline: Saves a full UNet + ControlNet checkpoint, -> renders
+four 5122 samples via DDIM 50-step sampling, -> computes
+FID/KID against a 5 k-image reference subset, and -> pushes
+artefacts to Weights&Biases under the run-ID UUID.
+G. Sampling & Evaluation Pipeline
+At evaluation time, only the Mask-Diffusion branch is active.
+For each test mask, five stochastic DDIM samples are generated
+with guidance scale 9 and η = 0. Images are decoded back
+to RGB via the frozen VQ-VAE decoder and stored losslessly
+as PNG for metric parity. For evaluation, we compute a
+comprehensive suite of metrics that span fidelity, perceptual
+quality, and clinical utility. Fréchet Inception Distance (FID)
+and Kernel Inception Distance (KID) are calculated using
+2 048-dimensional TensorFlow Inception-V3 features extracted
+from real and synthetic images to quantify distributional
+closeness. Perceptual similarity is assessed via the Learned
+Perceptual Image Patch Similarity (LPIPS) metric with AlexNet
+weights, while semantic alignment to the conditioning text
+prompt is measured through CLIP-I cosine similarity. To
+evaluate structural realism, we use Conditional Maximum
+Mean Discrepancy (CMMD) to compare the distribution
+of mask shapes. Finally, downstream clinical usefulness is
+estimated by computing mean Dice and Intersection-over-Union
+(mDice/mIoU) scores, obtained by feeding mixtures of synthetic
+and real images into three pre-trained segmentation backbones:
+SANet, Polyp-PVT, and CTNet. All evaluation procedures are
+implemented in eval.py, which can reproduce the quanti-
+tative results reported in Tables I via a single command-line
+invocation.
+V. RESULTS AND EVALUATION
+A. Training Dynamics
+Training proceeded for the full 3 000 optimisation steps
+without divergence or numerical instability, and the evolution
+of the loss function over time is illustrated in Figure 1.
+The top panel plots the raw diffusion loss at each step
+(blue), along with its 10-step rolling mean (red) and the
+associated ±1 standard deviation envelope (pink) to visualise
+stochastic fluctuations. Although the instantaneous loss varies
