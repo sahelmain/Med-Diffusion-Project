@@ -86,4 +86,6 @@ Given the accelerated timeline:
 ```
 
 ## License
-This project is for educational purposes as part of a graduate course project. 
+This project is for educational purposes as part of a graduate course project. # Project Structure Update
+
+This repository now contains organized results, documentation, and implementation files for the Siamese-Diffusion medical image synthesis project.
