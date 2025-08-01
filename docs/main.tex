@@ -1,0 +1,164 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Siamese-Diffusion Replication for Medical Image Synthesis: Challenges and Analysis\\}
+
+\author{
+\IEEEauthorblockN{Samuel Abiola}
+\IEEEauthorblockA{}
+\and
+\IEEEauthorblockN{Ynes Ineza }
+\IEEEauthorblockA{R11733782}
+\and
+\IEEEauthorblockN{Sahel Azzam}
+\IEEEauthorblockA{}
+\and
+\IEEEauthorblockN{Salish Kumar}
+\IEEEauthorblockA{}
+\and
+\IEEEauthorblockN{Daniel Diaz Santiago}
+\IEEEauthorblockA{}
+}
+
+\maketitle
+
+\begin{abstract}
+Diffusion models have recently become popular in machine learning for generating high-quality images, but their performance in medical imaging is often constrained by the scarcity of annotated datasets. The work by Qiu et al. (2025) proposes Siamese-Diffusion, a dual-branch diffusion model designed to address this challenge by enhancing both the fidelity and diversity of synthetic medical images. In this paper, we describe our replication efforts, the challenges encountered during implementation, and provide a detailed analysis of the unexpected noisy outputs obtained from our model. Our findings highlight critical implementation considerations for reproducing complex diffusion architectures in medical imaging applications.
+\end{abstract}
+
+\begin{IEEEkeywords}
+diffusion models, medical imaging, siamese-diffusion, image synthesis, replication study
+\end{IEEEkeywords}
+
+\section{Introduction}
+Deep learning has revolutionized medical image analysis, yet its full potential remains constrained by the paucity of annotated datasets. Medical data annotation is costly, time-consuming, and requires expert knowledge, creating a significant bottleneck for developing robust segmentation models. Diffusion models have emerged as a promising solution by generating synthetic image-mask pairs to augment these limited datasets.
+
+However, traditional mask-only diffusion models frequently yield low-fidelity images due to their inability to adequately capture morphological intricacies. This limitation can critically compromise the robustness and reliability of segmentation models trained on such synthetic data. To address this challenge, Qiu et al. (2025) introduced Siamese-Diffusion, a novel dual-component model comprising Mask-Diffusion and Image-Diffusion branches.
+
+The key innovation of Siamese-Diffusion lies in its Noise Consistency Loss, which enables the noise predicted by Image-Diffusion to act as an anchor, steering the convergence trajectory of Mask-Diffusion toward local minima with higher morphological fidelity. During sampling, only Mask-Diffusion is employed, ensuring both diversity and scalability while maintaining high-fidelity morphological characteristics.
+
+In our replication study, we implemented the Siamese-Diffusion architecture based on the published methodology. However, we encountered significant challenges where the generated images remained highly noisy rather than producing the expected high-fidelity medical images. This paper documents our implementation approach, analyzes the observed issues, and discusses potential causes and solutions.
+
+\section{Related Works}
+
+\subsection{Diffusion Models for Image Synthesis}
+Diffusion Probabilistic Models have become dominant in high-quality image synthesis tasks. The foundational work by Ho et al. established the denoising diffusion framework, which iteratively removes noise from Gaussian noise to generate realistic images. Latent Diffusion Models further improved efficiency by operating in a compressed latent space rather than directly on pixel values.
+
+Controllable diffusion models have introduced novel approaches for conditional generation. ControlNet enables precise control over generated images using structural conditions such as segmentation masks, depth maps, and edge maps. These advances have found widespread applications in data-scarce fields, particularly medical diagnosis and analysis.
+
+\subsection{Medical Image Synthesis}
+In medical imaging, several approaches have been developed to address data scarcity. ArSDM focuses on colonoscopy image synthesis using adaptive refinement, while other methods employ GANs or variational autoencoders. However, these approaches often struggle with morphological fidelity, producing images that lack essential characteristics such as surface texture and realistic color representation.
+
+The challenge is particularly acute in medical imaging where subtle morphological details can be clinically significant. Traditional mask-only methods tend to get trapped in local minima with poor morphological fidelity, while mask-image joint methods, though producing higher fidelity, severely limit diversity due to their close resemblance to training data.
+
+\section{Methodology}
+
+\subsection{Siamese-Diffusion Architecture}
+Our implementation follows the Siamese-Diffusion architecture described in the original paper. The model consists of two main components operating on the same diffusion framework:
+
+\textbf{Mask-Diffusion}: Uses only segmentation masks as prior control, enabling diverse generation during sampling.
+
+\textbf{Image-Diffusion}: Leverages both images and their corresponding masks as joint prior control, achieving higher morphological fidelity.
+
+The architecture employs a shared parameter space where both branches use the same underlying diffusion model with different conditioning inputs. During training, mixed features $c_{mix}$ are computed as:
+$$c_{mix} = w_i \cdot c_i + w_m \cdot sg[c_m]$$
+where $w_i$ and $w_m$ represent weights for image and mask prior controls respectively, and $sg[\cdot]$ denotes the stop-gradient operation.
+
+\subsection{Noise Consistency Loss}
+The core innovation lies in the Noise Consistency Loss, formulated as:
+$$L_c = w_c \cdot E[||\epsilon^m_\theta - sg[\epsilon^{mix}_{\theta'}]||^2]$$
+This loss enables the more accurate noise prediction from Image-Diffusion to guide Mask-Diffusion toward higher-fidelity regions in the parameter space.
+
+\subsection{Implementation Details}
+We implemented our replication using PyTorch and Stable Diffusion v1.5 as the foundation. Key implementation parameters include:
+\begin{itemize}
+    \item Learning rate: $1 \times 10^{-5}$
+    \item Weight decay: $1 \times 10^{-2}$
+    \item Batch size: 48 (6 per GPU across 8 GPUs)
+    \item Training iterations: 3,000 for medical datasets
+    \item Sampling steps: 50 using DDIM scheduler
+    \item Guidance scale: $\lambda = 9$
+\end{itemize}
+
+We followed the Dense Hint Input (DHI) module design to handle high-density semantic images, incorporating residual blocks with channel sizes of 16, 32, 64, 128, and 256.
+
+\section{Evaluation and Results}
+
+\subsection{Experimental Setup}
+We conducted experiments on polyp segmentation datasets, following the original paper's evaluation protocol. Our training dataset consisted of samples from the Kvasir and CVC-ClinicDB datasets, totaling 1,450 image-mask pairs.
+
+\subsection{Observed Results}
+Upon running our implemented model, we encountered significant deviations from the expected outcomes. Instead of generating clear, high-fidelity medical images with realistic morphological characteristics, our model produced highly noisy outputs resembling random noise patterns rather than coherent medical images.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.9\columnwidth]{comparison_results.png}
+\caption{Comparison of results: (a) Our noisy output, (b) Expected high-fidelity polyp image from original paper. The stark contrast highlights the implementation challenges encountered.}
+\label{fig:results}
+\end{figure}
+
+The generated images exhibited several problematic characteristics:
+\begin{itemize}
+    \item High-frequency noise dominating the output
+    \item Lack of coherent structural features
+    \item Absence of recognizable medical image characteristics
+    \item Poor alignment with input mask conditions
+\end{itemize}
+
+\subsection{Quantitative Analysis}
+While we were unable to compute standard image quality metrics (FID, KID, LPIPS) due to the severely degraded output quality, visual inspection clearly indicated fundamental issues in our implementation. The expected metrics from the original paper show FID scores of 62.706 and KID scores of 0.0395, representing significant improvements over existing methods.
+
+\section{Discussion and Analysis}
+
+\subsection{Potential Implementation Issues}
+Several factors may have contributed to the poor quality of our generated images:
+
+\textbf{Sampling Configuration}: The denoising process may require different sampling parameters than those specified. The guidance scale, number of inference steps, or scheduler configuration might need adjustment for medical image domains.
+
+\textbf{Training Convergence}: The dual-branch training scheme with Noise Consistency Loss requires careful balancing. Insufficient training or improper loss weighting could prevent the model from learning meaningful representations.
+
+\textbf{Data Preprocessing}: Medical images often require domain-specific preprocessing that may not be adequately addressed in our implementation.
+
+\textbf{Architecture Details}: Subtle implementation details in the DHI module or the integration of siamese branches may differ from our interpretation of the paper.
+
+\subsection{Debugging Approaches}
+To address these issues, several debugging strategies should be employed:
+\begin{enumerate}
+    \item Implement gradual complexity increase, starting with single-branch implementation
+    \item Verify loss function computations and gradient flow
+    \item Analyze intermediate feature representations during training
+    \item Compare training dynamics with baseline ControlNet implementation
+    \item Investigate domain-specific requirements for medical image generation
+\end{enumerate}
+
+\subsection{Lessons Learned}
+Our replication attempt highlights several critical considerations for reproducing complex diffusion architectures:
+\begin{itemize}
+    \item The importance of detailed implementation specifications in academic papers
+    \item The need for incremental validation during complex model development
+    \item The challenge of reproducing state-of-the-art results without access to original codebases
+    \item The significance of domain-specific considerations in medical image synthesis
+\end{itemize}
+
+\section{Future Work and Conclusion}
+Despite the challenges encountered in our replication attempt, this study provides valuable insights into the complexities of implementing advanced diffusion models for medical image synthesis. Our noisy outputs indicate fundamental issues that require systematic debugging and potentially significant modifications to our current approach.
+
+Future work will focus on identifying and resolving the root causes of the poor image quality. This includes implementing more rigorous validation at each development stage, potentially starting with simpler baseline models and gradually incorporating the siamese architecture and noise consistency components.
+
+The Siamese-Diffusion approach represents a promising direction for addressing the dual challenges of morphological fidelity and diversity in medical image synthesis. While our replication was unsuccessful, the theoretical framework remains compelling, and successful implementation could significantly advance the field of medical image augmentation.
+
+Our experience underscores the importance of reproducibility in deep learning research and the need for comprehensive implementation details and available code repositories to facilitate scientific progress.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references} 
+\end{document}
