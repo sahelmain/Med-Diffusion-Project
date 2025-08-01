@@ -1,0 +1,15 @@
+
+ZOOM
+Course project requirement/guidance
+The requirement of the midterm report and presentation is as follows:
+1. Re-implement all methods in a selected paper;
+2. Reproduce the experimental results for the selected paper;
+3. Novel potential technologies to improve the experimental results;
+4. At least 5 pages in IEEE double column format (see attachment).
+The requirement of final report and presentation is as follows:
+1. Implement all novel technologies;
+2. Conduct experiments to compare with existing methods;
+3. Refine/modify/redesign novel technologies to make the results of novel methods significantly
+better than existing methods;
+4. Perform experimental analysis on all experimental results;
+5. At least 12 pages report in IEEE double column format.
